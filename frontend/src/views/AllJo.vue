@@ -76,27 +76,65 @@
 			</b-form-group>
 			</b-col>
 
-			<b-col cols="12">
-			<b-table
-				striped
-				hover
-				responsive
-				:per-page="perPage"
-				:current-page="currentPage"
-				:items="items"
-				:fields="fields"
-				:sort-by.sync="sortBy"
-				:sort-desc.sync="sortDesc"
-				:sort-direction="sortDirection"
-				:filter="filter"
-				:filter-included-fields="filterOn"
-				@filtered="onFiltered"
-			>
+			<b-col>
+				<b-table
+					striped
+					hover
+					responsive
+					:per-page="perPage"
+					:current-page="currentPage"
+					:items="items"
+					:fields="fields"
+					:sort-by.sync="sortBy"
+					:sort-desc.sync="sortDesc"
+					:sort-direction="sortDirection"
+					:filter="filter"
+					:filter-included-fields="filterOn"
+					@filtered="onFiltered"
+				>
+
+				<template #cell(action)="data">
 			
+					<b-dropdown
+						variant="link"
+						toggle-class="text-decoration-none"
+						no-caret
+					>
+						<template v-slot:button-content>
+							<feather-icon
+							icon="MoreVerticalIcon"
+							size="16"
+							class="text-body align-middle mr-25"
+							/>
+						</template>
+							<b-dropdown-item>
+								<feather-icon
+								icon="InfoIcon"
+								class="mr-50"
+								/>
+								<span>View</span>
+							</b-dropdown-item>
+							<b-dropdown-item>
+								<feather-icon
+								icon="Edit2Icon"
+								class="mr-50"
+								/>
+								<span>Edit</span>
+							</b-dropdown-item>
+							<b-dropdown-item>
+								<feather-icon
+								icon="TrashIcon"
+								class="mr-50"
+								/>
+								<span>Cancel</span>
+							</b-dropdown-item>
+					</b-dropdown>
+
+				</template>
 				<template #cell(status)="data">
-				<b-badge :variant="status[1][data.value]">
-					{{ status[0][data.value] }}
-				</b-badge>
+					<b-badge :variant="status[data.value]">
+						{{ data.value }} 
+					</b-badge>
 				</template>
 			</b-table>
 			</b-col>
@@ -137,111 +175,117 @@
 <script>
 
 import {
-  BCard, BCardText, BTable, BAvatar, BBadge, BRow, BCol, BFormGroup, BFormSelect, BPagination, BInputGroup, BFormInput, BInputGroupAppend, BButton,
+	BCard, 
+	BCardText, 
+	BTable, 
+	BAvatar, 
+	BBadge, 
+	BRow, 
+	BCol, 
+	BFormGroup, 
+	BFormSelect, 
+	BPagination, 
+	BInputGroup, 
+	BFormInput, 
+	BInputGroupAppend, 
+	BButton,
+	BDropdown,
+    BDropdownItem,
+	BDropdownDivider 
 } from 'bootstrap-vue'
 
-
+import axios from 'axios';
+import Ripple from 'vue-ripple-directive'
+import statusColors from '@/@core/app-config/status.config.json';
 export default {
-  components: {
-    BCard,
-    BCardText,
-	BTable,
-    BAvatar,
-    BBadge,
-    BRow,
-    BCol,
-    BFormGroup,
-    BFormSelect,
-    BPagination,
-    BInputGroup,
-    BFormInput,
-    BInputGroupAppend,
-    BButton,
-  },
-  data() {
-    return {
-      perPage: 5,
-      pageOptions: [3, 5, 10],
-      totalRows: 1,
-      currentPage: 1,
-      sortBy: '',
-      sortDesc: false,
-      sortDirection: 'asc',
-      filter: null,
-      filterOn: [],
-      infoModal: {
-        id: 'info-modal',
-        title: '',
-        content: '',
-      },
-      fields: [
-        {
-          key: 'id', label: 'Id',
-        },
-        {
-          key: 'avatar', label: 'Avatar',
-        },
-        { key: 'full_name', label: 'Full Name', sortable: true },
-        { key: 'post', label: 'Post', sortable: true },
-        'email',
-        'city',
-        'start_date',
-        'salary',
-        'age',
-        'experience',
-        { key: 'status', label: 'Status', sortable: true },
-      ],
-      items: [
-        {
-			id: 1,
-			// eslint-disable-next-line global-require
-			full_name: "Korrie O'Crevy",
-			post: 'Nuclear Power Engineer',
-			email: 'kocrevy0@thetimes.co.uk',
-			city: 'Krasnosilka',
-			start_date: '09/23/2016',
-			salary: '$23896.35',
-			age: '61',
-			experience: '1 Year',
-			status: 2,
-        },
-      ],
-      status: [{
-        1: 'Current', 2: 'Professional', 3: 'Rejected', 4: 'Resigned', 5: 'Applied',
-      },
-      {
-        1: 'light-primary', 2: 'light-success', 3: 'light-danger', 4: 'light-warning', 5: 'light-info',
-      }],
-    }
-  },
-  computed: {
-    sortOptions() {
-      // Create an options list from our fields
-      return this.fields
-        .filter(f => f.sortable)
-        .map(f => ({ text: f.label, value: f.key }))
-    },
-  },
-  mounted() {
-    // Set the initial number of items
-    this.totalRows = this.items.length
-  },
-  methods: {
-    info(item, index, button) {
-      this.infoModal.title = `Row index: ${index}`
-      this.infoModal.content = JSON.stringify(item, null, 2)
-      this.$root.$emit('bv::show::modal', this.infoModal.id, button)
-    },
-    resetInfoModal() {
-      this.infoModal.title = ''
-      this.infoModal.content = ''
-    },
-    onFiltered(filteredItems) {
-      // Trigger pagination to update the number of buttons/pages due to filtering
-      this.totalRows = filteredItems.length
-      this.currentPage = 1
-    },
-  },
+	components: {
+		BBadge,
+		BCard,
+		BCardText,
+		BTable,
+		BAvatar,
+		BRow,
+		BCol,
+		BFormGroup,
+		BFormSelect,
+		BPagination,
+		BInputGroup,
+		BFormInput,
+		BInputGroupAppend,
+		BButton,
+		BDropdown,
+    	BDropdownItem,
+		BDropdownDivider
+	},
+	data() {
+		return {
+			perPage: 5,
+			pageOptions: [3, 5, 10],
+			totalRows: 1,
+			currentPage: 1,
+			sortBy: '',
+			sortDesc: false,
+			sortDirection: 'asc',
+			filter: null,
+			filterOn: [],
+			infoModal: {
+				id: 'info-modal',
+				title: '',
+				content: '',
+			},
+			fields: [
+				{ key: 'action', label: 'Action' },
+				{ key: 'id', label: 'JO #',},
+				{ key: 'vin', label: 'VIN', sortable: true },
+				{ key: 'sales_model', label: 'Model', sortable: true },
+				{ key: 'customer_name', label: 'Customer', sortable: true },
+				{ key: 'created_by', label: 'Created by', sortable: true },
+				{ key: 'created_at', label: 'Date created', sortable: true },
+				{ key: 'status', label: 'Status', sortable: true },
+			],
+			items: [],
+			status: statusColors.statusColors,
+    	}
+	},
+	computed: {
+		sortOptions() {
+			// Create an options list from our fields
+			return this.fields
+			.filter(f => f.sortable)
+			.map(f => ({ text: f.label, value: f.key }))
+		},
+	},
+	mounted() {
+		
+		this.loadData();
+	},
+	methods: {
+		loadData(){
+			axios.get('api/admin/job-order/list').then(res => {
+				this.items = res.data;
+				this.totalRows = res.data.length
+			}).catch(err => {
+
+			}).finally(() => {
+
+			});
+		},
+		info(item, index, button) {
+			this.infoModal.title = `Row index: ${index}`
+			this.infoModal.content = JSON.stringify(item, null, 2)
+			this.$root.$emit('bv::show::modal', this.infoModal.id, button)
+		},
+		resetInfoModal() {
+			this.infoModal.title = ''
+			this.infoModal.content = ''
+		},
+		onFiltered(filteredItems) {
+			// Trigger pagination to update the number of buttons/pages due to filtering
+			this.totalRows = filteredItems.length
+			this.currentPage = 1
+		},
+
+	},
 }
 </script>
 

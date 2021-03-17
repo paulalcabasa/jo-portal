@@ -8,7 +8,6 @@ use App\Models\JOHeader;
 use App\Models\JOLine;
 use App\Models\JOLinePart;
 use App\Models\JobType;
-
 class JobOrderController extends Controller
 {
     public function store(Request $request)
@@ -26,6 +25,7 @@ class JobOrderController extends Controller
             $header->section = $request->section['section'];
             $header->date_sold = $request->date_sold;
             $header->status = 1; //pending
+            $header->created_by_id = auth()->user()->user_id;
             $header->created_by = auth()->user()->first_name . ' ' . auth()->user()->last_name;
             $header->save();
             $job_header_id = $header->id;
@@ -71,5 +71,12 @@ class JobOrderController extends Controller
             DB::rollBack();
         }
 
+    }
+
+    public function index()
+    {
+        $joHeader = new JOHeader;
+        $data = $joHeader->getAll();
+        return $data;
     }
 }

@@ -1,0 +1,9 @@
+{
+    "statusColors" : {
+        "pending" : "light-primary",
+        "approved" : "light-success",
+        "rejected" : "light-danger",
+        "active" : "light-warning",
+        "inactive" : "light-info"
+    }
+}

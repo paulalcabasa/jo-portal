@@ -11,6 +11,11 @@ const router = new VueRouter({
 	},
 	routes: [
 		{
+			path: "/",
+      		redirect: "/all-jo",
+      		component: () => import('@/views/AllJo.vue'),
+		},
+		{
 			path: '/create-jo',
 			name: 'create-jo',
 			component: () => import('@/views/JobOrderForm.vue'),

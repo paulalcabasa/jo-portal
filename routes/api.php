@@ -44,6 +44,7 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::get('vehicle/get-by-vin/{vin}', 'VinController@show');
     
     Route::post('job-order/submit', 'JobOrderController@store');
+    Route::get('admin/job-order/list', 'JobOrderController@index');
 });
 
 
