@@ -194,6 +194,7 @@
                                     <v-select
                                         v-model="form.department"
                                         label="department"
+                                        value="department"
                                         :options="departments"
                                     />
                                 </b-form-group>
@@ -280,20 +281,26 @@
                             <tbody v-for="(row, index) in form.jobRequest" :key="index">
                                 <tr>
                                     <td>
-                                        <select name="" class="form-control form-control-sm"  @change="generateParts(index)" v-if="row.job.job_name != 'OTHERS'" v-model="row.job">
+                                        <v-select
+                                            v-model="row.job"
+                                            label="job_name"
+                                            :options="jobTypes"
+                                            v-if="row.job != 'OTHERS'"
+                                        />
+                                        <!-- <select name="" class="form-control form-control-sm"  @change="generateParts(index)" v-if="row.job.job_name != 'OTHERS'" v-model="row.job">
                                             <option value="">Select job</option>
                                             <option :value="job" v-for="(job, index) in jobTypes" :key="index">{{ job.job_name }}</option>
-                                        </select>
-                                        <div class="input-group" v-if="row.job.job_name == 'OTHERS'">
-                                        <input type="text" class="form-control form-control-sm" v-model="row.other_job" placeholder="Enter job request..."/>
-                                        <div class="input-group-append">
-                                            <button class="btn btn-danger btn-sm" type="button" @click="row.job = ''">X</button>
-                                        </div>
+                                        </select> -->
+                                        <div class="input-group" v-if="row.job == 'OTHERS'">
+                                            <input type="text" class="form-control" v-model="row.other_job" placeholder="Enter job request..."/>
+                                            <div class="input-group-append">
+                                                <button class="btn btn-danger" type="button" @click="row.job = ''">X</button>
+                                            </div>
                                         </div>
                                     </td>
-                                    <td><input type="text" v-model="row.job_done" class="form-control form-control-sm"/></td>
-                                    <td><input type="text" v-model="row.op_code" class="form-control form-control-sm"/></td>
-                                    <td><input type="text" v-model="row.labor_charge" class="form-control form-control-sm"/></td>
+                                    <td><b-form-input v-model="row.job_done" /></td>
+                                    <td><b-form-input v-model="row.op_code" /></td>
+                                    <td><b-form-input v-model="row.labor_charge" /></td>
                                     <td>
                                         <b-button 
                                             variant="danger" 
@@ -417,6 +424,7 @@ export default {
     data() {
         return {
             form : {
+                job_order_id : '',
                 vin : '',
                 cs_no : '',
                 engine : '',
@@ -427,7 +435,7 @@ export default {
                 customer_name: '',
                 department : '',
                 section : '',
-                contact_no : '',
+                contact_number : '',
                 date_sold : '',
                 jobRequest: [
                     {
@@ -445,29 +453,46 @@ export default {
             customerTypes : [],
             jobTypes : [],
             sections : [],
-            departments : []
+            departments : [],
+            action : 'create'
         }
     },
     mounted() {
-        this.loadCustomerTypes();
-        this.loadDepartments();
-        this.loadSections();
-        this.loadJobTypes();
+        this.loadOptions();
+
+        if(this.$route.params.jobOrderId){
+            this.action = "update";
+            this.form.job_order_id = this.$route.params.jobOrderId;
+            this.loadData();
+        }
     },
     methods: {
         formSubmitted() {
             var self = this;
+            var apiUrl = "";
+            if(this.action == "create"){
+                apiUrl = "api/job-order/submit";
+            }
+            else if(this.action == "update"){
+                apiUrl = "api/job-order/update";
+            }
             this.loading = true;
-            axios.post('api/job-order/submit', this.form).then(response => {
-                console.log(response);
+            axios.post(apiUrl, this.form).then(response => {
+                var response = response.data;
                 self.$toast({
                     component: ToastificationContent,
                     props: {
-                        title: 'Job Order has been created.',
+                        title: response.message,
                         icon: 'EditIcon',
                         variant: 'success',
                     },  
                 })
+                self.$router.push({
+                    name : 'jo-details',
+                    params : {
+                        jobOrderId : response.job_order_id
+                    }
+                });
             }).catch(err => {
                 self.$toast({
                     component: ToastificationContent,
@@ -493,10 +518,7 @@ export default {
                 }
                 })
             })
-        },
-    
-      
-      
+        },  
         searchVehicle(){
             var self = this;
             this.loading = true;
@@ -518,41 +540,29 @@ export default {
                 this.loading = false;
             });
         },
-        loadCustomerTypes(){
-            axios.get('api/customer-types/get').then(res => {
-                var arr = [];
-                var data = res.data;
-                for(let i = 0; i < data.length; i++) {
-                    arr.push({
-                        type : data[i].type,
-                        id : data[i].id
-                    });
-                }
-                this.customerTypes = arr;
-            }).catch(err => {
-                alert("failed loading customer types");
-            })
-        },
-        loadDepartments(){
-            axios.get('api/departments/get').then(res => {
-                this.departments = res.data;
-            }).catch(err => {
-                console.log(err);
+        loadOptions(){
+            let custTypesApi = 'api/customer-types/get';
+            let departmentsApi = 'api/departments/get';
+            let sectionsApi = 'api/sections/get';
+            let jobTypesApi = 'api/job-types/get';
+           
+            const custTypesReq = axios.get(custTypesApi);
+            const departmentsReq = axios.get(departmentsApi);
+            const sectionsReq = axios.get(sectionsApi);
+            const jobTypesReq = axios.get(jobTypesApi);
+          
+            var self = this;
+            axios.all([custTypesReq, departmentsReq, sectionsReq, jobTypesReq]).then(axios.spread((...responses) => {
+                self.customerTypes = responses[0].data;
+                self.departments = this.objectToArray(responses[1].data, 'department');
+                self.sections = this.objectToArray(responses[2].data, 'section');
+                self.jobTypes = this.objectToArray(responses[3].data, 'job_name');
+            })).catch(errors => {
+
+            }).finally( () => {
+
             });
-        },
-        loadSections(){
-            axios.get('api/sections/get').then(res => {
-                this.sections = res.data;
-            }).catch(err => {
-                console.log(err);
-            });
-        },
-        loadJobTypes(){
-            axios.get('api/job-types/get').then(res => {
-                this.jobTypes = res.data;
-            }).catch(err => {
-                console.log(err);
-            });
+        
         },
         addJob(){
             this.form.jobRequest.push({
@@ -585,9 +595,9 @@ export default {
 			this.form.jobRequest[jobIndex].parts.splice(partIndex, 1);
 		},
 		addPart(jobIndex){
-            var job_request_id = this.form.jobRequest[jobIndex].job.id;
+            //var job_request_id = this.form.jobRequest[jobIndex].job.id;
             var newPart = {
-                job_request_id : job_request_id,
+                //job_request_id : job_request_id,
                 part_no : '',
                 part_description : '',
                 quantity : '',
@@ -595,6 +605,53 @@ export default {
             };
             this.form.jobRequest[jobIndex].parts.push(newPart);
         },
+        loadData(){
+            let headerApi = 'api/job-order/header/get/' + this.$route.params.jobOrderId;
+            let lineApi = 'api/job-order/line/get/' + this.$route.params.jobOrderId;
+            const headerReq = axios.get(headerApi);
+            const lineReq = axios.get(lineApi);
+            var self = this;
+            axios.all([headerReq, lineReq]).then(axios.spread((...responses) => {
+                let header = responses[0].data;
+                this.form.vin = header.vin;
+                this.form.engine = header.engine;
+                this.form.cs_no = header.cs_no;
+                this.form.plate_no = header.plate_no;
+                this.form.model = header.sales_model;
+                this.form.mileage = header.mileage;
+                this.form.contact_number = header.contact_number;
+                this.form.customer_name = header.customer_name;
+                this.form.date_sold = header.date_sold;
+                this.form.department = header.department;
+                this.form.section = header.section;
+                this.form.customer_type = {
+                    'id' : header.customer_type_id,
+                    'type' : header.customer_type
+                };
+                let lines = responses[1].data;
+
+                this.form.jobRequest = [];
+                for(let i = 0; i < lines.length; i++) {
+                    let line = lines[i];
+                    let parts = lines[i].parts;        
+                    this.form.jobRequest.push({
+                        job : line.job_type,
+                        job_done : line.job_done,
+                        labor_charge : line.labor_charge,
+                        op_code : line.op_code,
+                        partsToggle : false,
+                        parts : parts
+                    });
+                }
+            })).catch(errors => {
+
+            }).finally( () => {
+
+            });
+        },
+        objectToArray(arrObj, label){
+            return arrObj.map(value => value[label]);
+        }
     },
 }
 </script>

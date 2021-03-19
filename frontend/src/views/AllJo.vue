@@ -93,7 +93,7 @@
 					@filtered="onFiltered"
 				>
 
-				<template #cell(action)="data">
+				<template #cell(action)="row">
 			
 					<b-dropdown
 						variant="link"
@@ -107,17 +107,17 @@
 							class="text-body align-middle mr-25"
 							/>
 						</template>
-							<b-dropdown-item>
+							<b-dropdown-item @click="viewDetails(row.item.id)">
 								<feather-icon
 								icon="InfoIcon"
 								class="mr-50"
 								/>
 								<span>View</span>
 							</b-dropdown-item>
-							<b-dropdown-item>
+							<b-dropdown-item @click="edit(row.item.id)">
 								<feather-icon
-								icon="Edit2Icon"
-								class="mr-50"
+									icon="Edit2Icon"
+									class="mr-50"
 								/>
 								<span>Edit</span>
 							</b-dropdown-item>
@@ -131,11 +131,15 @@
 					</b-dropdown>
 
 				</template>
+				<template #cell(created_at)="data">
+					{{ data.value | formatDate }}
+				</template>
 				<template #cell(status)="data">
 					<b-badge :variant="status[data.value]">
 						{{ data.value }} 
 					</b-badge>
 				</template>
+				
 			</b-table>
 			</b-col>
 			
@@ -197,6 +201,7 @@ import {
 import axios from 'axios';
 import Ripple from 'vue-ripple-directive'
 import statusColors from '@/@core/app-config/status.config.json';
+import moment from 'moment';
 export default {
 	components: {
 		BBadge,
@@ -256,7 +261,6 @@ export default {
 		},
 	},
 	mounted() {
-		
 		this.loadData();
 	},
 	methods: {
@@ -284,8 +288,31 @@ export default {
 			this.totalRows = filteredItems.length
 			this.currentPage = 1
 		},
+		viewDetails(job_order_id){
+			this.$router.push({
+				name : 'jo-details',
+				params : {
+					jobOrderId : job_order_id
+				}
+			});
+		},
+		edit(job_order_id){
+			this.$router.push({
+				name : 'edit-jo',
+				params : {
+					jobOrderId : job_order_id
+				}
+			});
+		}
 
 	},
+	filters : {
+        formatDate: function(value) {
+            if (value) {
+                return moment(String(value)).format('MM/DD/YYYY')
+            }
+        },
+    },
 }
 </script>
 

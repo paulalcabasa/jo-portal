@@ -9,6 +9,6 @@ class CustomerTypeController extends Controller
 {
     public function index()
     {
-        return CustomerType::all();
+        return CustomerType::select('id', 'type')->get();
     }
 }

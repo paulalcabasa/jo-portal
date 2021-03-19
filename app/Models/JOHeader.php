@@ -31,4 +31,37 @@ class JOHeader extends Model
         $query = DB::select($sql);
         return $query;   
     }
+
+    public function get($id)
+    {
+        $sql = "SELECT  jh.id,
+                        cust_type.type customer_type,
+                        jh.customer_name,
+                        jh.created_by,
+                        jh.created_at,
+                        st.status,
+                        jh.section,
+                        jh.department,
+                        jh.date_sold,
+                        jh.vin,
+                        vehicle.engine,
+                        vehicle.color,
+                        vehicle.sales_model,
+                        jh.plate_no,
+                        vehicle.serial_number cs_no,
+                        jh.mileage,
+                        jh.contact_number,
+                        jh.customer_type_id
+                FROM ipc.ipc_jo_headers jh
+                    LEFT JOIN ipc.ipc_jo_vehicles_v vehicle
+                        ON jh.vin = vehicle.vin
+                    LEFT JOIN ipc.ipc_jo_status st
+                        ON st.id = jh.status
+                    LEFT JOIN ipc.ipc_jo_customer_types cust_type
+                        ON cust_type.id = jh.customer_type_id  
+                WHERE jh.id = :job_order_id";
+        $query = DB::select($sql, ['job_order_id' => $id]);
+
+        return count($query) > 0 ? $query[0] : $query;   
+    }
 }

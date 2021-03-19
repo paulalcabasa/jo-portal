@@ -9,6 +9,6 @@ class SectionController extends Controller
 {
     public function index()
     {
-        return Section::all();
+        return Section::select('section')->distinct('section')->get();
     }
 }

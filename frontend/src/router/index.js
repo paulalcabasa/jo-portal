@@ -21,12 +21,12 @@ const router = new VueRouter({
 			component: () => import('@/views/JobOrderForm.vue'),
 			meta: {
 			pageTitle: 'Job Order',
-			breadcrumb: [
-				{
-				text: 'Create',
-				active: true,
-				},
-			],
+				breadcrumb: [
+					{
+					text: 'Create',
+					active: true,
+					},
+				],
 			},
 		},
 		{
@@ -35,12 +35,40 @@ const router = new VueRouter({
 			component: () => import('@/views/AllJo.vue'),
 			meta: {
 			pageTitle: 'Job Order',
-			breadcrumb: [
-				{
-					text: 'List',
+				breadcrumb: [
+					{
+						text: 'List',
+						active: true,
+					},
+				],
+			},
+		},
+		{
+			path: '/jo-details/:jobOrderId',
+			name: 'jo-details',
+			component: () => import('@/views/ViewJo.vue'),
+			meta: {
+				pageTitle: 'Job Order',
+				breadcrumb: [
+					{
+						text: 'View',
+						active: true,
+					},
+				],
+			},
+		},
+		{
+			path: '/edit-jo/:jobOrderId',
+			name: 'edit-jo',
+			component: () => import('@/views/JobOrderForm.vue'),
+			meta: {
+			pageTitle: 'Job Order',
+				breadcrumb: [
+					{
+					text: 'Edit',
 					active: true,
-				},
-			],
+					},
+				],
 			},
 		},
 		{
