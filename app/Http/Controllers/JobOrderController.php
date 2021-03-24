@@ -29,7 +29,7 @@ class JobOrderController extends Controller
             $header->section = $request->section;
             $header->date_sold = $request->date_sold;
             $header->status = 1; //pending
-            $header->created_by_id = auth()->user()->user_id;
+            $header->created_by_id = auth()->user()->employee_id;
             $header->created_by = auth()->user()->first_name . ' ' . auth()->user()->last_name;
             $header->save();
             $job_header_id = $header->id;
@@ -40,10 +40,11 @@ class JobOrderController extends Controller
             foreach($defaultApprovers as $row){
                 $row = (object) $row;
                 $approval = new Approval;
-                $approval->employee_no = $row->employee_number;
+                $approval->approver_id = $row->approver_id;
                 $approval->sequence_no = $row->sequence_no;
+                $approval->module_code = $row->module_code;
                 $approval->status = 1;
-                $approval->job_header_id = $job_header_id;
+                $approval->reference_id = $job_header_id;
                 $approval->save();
             }
 
@@ -142,14 +143,15 @@ class JobOrderController extends Controller
             
             // approval
             $approver = new Approver;
-            
             $defaultApprovers = $approver->getApprovers();
             foreach($defaultApprovers as $row){
+                $row = (object) $row;
                 $approval = new Approval;
-                $approval->employee_no = $row->employee_number;
-                $approval->sequence = $row->sequence;
+                $approval->approver_id = $row->approver_id;
+                $approval->sequence_no = $row->sequence_no;
+                $approval->module_code = $row->module_code;
                 $approval->status = 1;
-                $approval->job_header_id = $job_header_id;
+                $approval->reference_id = $job_header_id;
                 $approval->save();
             }
 

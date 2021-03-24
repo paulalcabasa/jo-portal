@@ -14,7 +14,8 @@ class Approver extends Model
     {
         $sql = "SELECT approver.id approver_id,
                         approver.employee_number,
-                        approver.sequence_no
+                        approver.sequence_no,
+                        approver.module_code
                 FROM ipc.ipc_jo_approvers approver
                     LEFT JOIN per_people_f ppf
                         ON approver.employee_number = ppf.employee_number";

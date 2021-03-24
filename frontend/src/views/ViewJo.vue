@@ -69,40 +69,55 @@
             </b-col>
 
             <b-col sm="8">
-                <b-card title="Job Request">
-                    <b-table
-                        :items="lines"
-                        :fields="fields"
-                        striped
-                        responsive
-                        small
-                    >
-                        <template #cell(parts_info)="row">
-                            <b-form-checkbox
-                                v-model="row.detailsShowing"
-                                plain
-                                class="vs-checkbox-con"
-                                @change="row.toggleDetails"
+                <b-card>
+                    <b-tabs content-class="mt-1">
+                        <b-tab title="Job Request">
+                            <b-table
+                                :items="lines"
+                                :fields="fields"
+                                striped
+                                responsive
+                                small
                             >
-                           
-                            <span class="vs-label">{{ row.detailsShowing ? 'Hide' : 'Show' }}</span>
-                            </b-form-checkbox>
-                        </template>
-                        x
-
-                        <template #row-details="row">
-                            <b-card>
-                                <b-table :fields="parts_fields" :items="row.item.parts"></b-table>
-                            
-                            </b-card>
-                        </template>
-
-                
-                
-                    </b-table>
+                                <template #cell(parts_info)="row">
+                                    <b-form-checkbox
+                                        v-model="row.detailsShowing"
+                                        plain
+                                        class="vs-checkbox-con"
+                                        @change="row.toggleDetails"
+                                    >
+                                
+                                    <span class="vs-label">{{ row.detailsShowing ? 'Hide' : 'Show' }}</span>
+                                    </b-form-checkbox>
+                                </template>
+                                <template #row-details="row">
+                                    <b-card>
+                                        <b-table :fields="parts_fields" :items="row.item.parts"></b-table>
+                                    </b-card>
+                                </template>        
+                            </b-table>
+                        </b-tab>
+                        <b-tab title="Approval">
+                            <b-table
+                                :items="approval"
+                                :fields="approvalFields"
+                                striped
+                                responsive
+                                small
+                            >
+                                <template #cell(date_sent)="data">
+                                    {{ data.value | formatDate }}
+                                </template> 
+                                <template #cell(date_approved)="data">
+                                    {{ data.value | formatDate }}
+                                </template> 
+                            </b-table>
+                        </b-tab>
+                    </b-tabs>
+                    
 	            </b-card>
             </b-col>
-           
+
         </b-row>
 	
     </div>
@@ -170,10 +185,40 @@ export default {
                     key : 'parts_info',
                     label : 'Parts'
                 }
+            ],
+            approval : [],
+            approvalFields : [
+                {
+                    key : 'sequence_no',
+                    label : 'Sequence'
+                },
+                {
+                    key : 'approver_name',
+                    label : 'Approver Name'
+                },
+                {
+                    key : 'email_address',
+                    label : 'Email'
+                },
+                {
+                    key : 'status',
+                    label : 'Status'
+                },
+                {
+                    key : 'date_sent',
+                    label : 'Date sent'
+                },
+                {
+                    key : 'date_approved',
+                    label : 'Date approved'
+                },
+                {
+                    key : 'remarks',
+                    label : 'Remarks'
+                }
             ]
     	}
 	},
-    
 	mounted() {
 		this.loadData();
 	},
@@ -181,12 +226,15 @@ export default {
 		loadData(){
             let headerApi = 'api/job-order/header/get/' + this.$route.params.jobOrderId;
             let lineApi = 'api/job-order/line/get/' + this.$route.params.jobOrderId;
+            let approvalApi = 'api/job-order/approval/' + this.$route.params.jobOrderId;
             const headerReq = axios.get(headerApi);
             const lineReq = axios.get(lineApi);
+            const approvalReq = axios.get(approvalApi);
             var self = this;
-            axios.all([headerReq, lineReq]).then(axios.spread((...responses) => {
+            axios.all([headerReq, lineReq, approvalReq]).then(axios.spread((...responses) => {
                 self.header = responses[0].data;
                 self.lines = responses[1].data;
+                self.approval = responses[2].data;
             })).catch(errors => {
 
             }).finally( () => {

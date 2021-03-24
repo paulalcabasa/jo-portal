@@ -43,13 +43,18 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::get('customer-types/get', 'CustomerTypeController@index');
     Route::get('vehicle/get-by-vin/{vin}', 'VinController@show');
     
-    
     Route::post('job-order/submit', 'JobOrderController@store');
     Route::post('job-order/update', 'JobOrderController@update');
 
     Route::get('admin/job-order/list', 'JobOrderController@index');
     Route::get('job-order/header/get/{job_order_id}', 'JobOrderController@show');
     Route::get('job-order/line/get/{job_order_id}', 'JobOrderLineController@index');
+
+    Route::get('job-order/approval/{job_order_id}', 'ApprovalController@index');
+    
+    
 });
+
+Route::get('job-order/approve/{approval_id}', 'JOApproveController@store');
 
 
