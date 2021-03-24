@@ -56,5 +56,7 @@ Route::group(['middleware' => 'jwt'], function () {
 });
 
 Route::get('job-order/approve/{approval_id}', 'JOApproveController@store');
+Route::get('job-order/reject-form/{approval_id}', 'JORejectController@show');
+Route::post('job-order/reject', 'JORejectController@store');
 
 

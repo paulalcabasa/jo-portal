@@ -18,7 +18,8 @@ class Approval extends Model
                     approver.email_address,
                     st.status,
                     approval.date_sent,
-                    approval.date_approved
+                    approval.date_approved,
+                    approval.remarks
                 FROM ipc.ipc_jo_approval approval
                     LEFT JOIN ipc.ipc_jo_approvers approver
                         ON approval.approver_id = approver.id

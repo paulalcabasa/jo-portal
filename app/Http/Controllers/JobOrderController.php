@@ -11,6 +11,8 @@ use App\Models\JobType;
 use App\Models\Approval;
 use App\Models\Approver;
 use Carbon\Carbon;
+use App\Services\LogService;
+
 
 class JobOrderController extends Controller
 {
@@ -85,6 +87,15 @@ class JobOrderController extends Controller
                     $linePart->save();
                 }
             }
+
+            $logService = new LogService;
+            $logService->createLog([
+                'content' => 'Job Order No. ' . $job_header_id . ' has been created by ' . auth()->user()->first_name . ' ' . auth()->user()->last_name . '.' ,
+                'recipient' => auth()->user()->email,
+                'reference_id' => $job_header_id,
+                'module_code' => 'JO',
+                'mail_flag' => 'N',
+            ]);
             DB::commit();
             return [
                 'job_order_id' => $job_header_id, 
@@ -126,7 +137,8 @@ class JobOrderController extends Controller
             $header->section = $request->section;
             $header->date_sold = $request->date_sold;
             $header->status = 1; //pending
-            $header->created_by_id = auth()->user()->user_id;
+            $header->current_approver_sequence = 1;
+            $header->created_by_id = auth()->user()->employee_id;
             $header->created_by = auth()->user()->first_name . ' ' . auth()->user()->last_name;
             $header->save();
 
@@ -137,9 +149,11 @@ class JobOrderController extends Controller
             $delJoLine = new JOLine;
             $delJoLine->where('job_header_id', $job_header_id)->delete();
 
-
             // delete current approval
-            $deleteApproval = Approval::where('job_header_id', $job_header_id)->delete();
+            $deleteApproval = Approval::where([
+                ['reference_id', $job_header_id],
+                ['module_code', 'JO']
+            ])->delete();
             
             // approval
             $approver = new Approver;
@@ -190,6 +204,16 @@ class JobOrderController extends Controller
                     $linePart->save();
                 }
             }
+
+            $logService = new LogService;
+            $logService->createLog([
+                'content' => 'Job Order No. ' . $job_header_id . ' has been updated by ' . auth()->user()->first_name . ' ' . auth()->user()->last_name . '.' ,
+                'recipient' => auth()->user()->email,
+                'reference_id' => $job_header_id,
+                'module_code' => 'JO',
+                'mail_flag' => 'N',
+            ]);
+
             DB::commit();
             return [
                 'job_order_id' => $job_header_id, 

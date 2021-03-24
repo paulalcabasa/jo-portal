@@ -295,7 +295,7 @@
 											</tr>
 											<tr>
 												<td align="center" style="color: #00A65A; font-size: 14px; font-family: 'Work Sans', Calibri, sans-serif;">
-												    <a href="#" style="color: #ffffff; text-decoration: none;">Reject</a>
+												    <a href="<?php echo $reject_url; ?>" style="color: #ffffff; text-decoration: none;">Reject</a>
 												</td>
 											</tr>
 											<tr>
