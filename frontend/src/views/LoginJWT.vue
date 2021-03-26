@@ -207,7 +207,7 @@ import { required, email } from "@validations";
 import { togglePasswordVisibility } from "@core/mixins/ui/forms";
 import store from "@/store/index";
 import { getHomeRouteForLoggedInUser } from "@/auth/utils";
-
+import axios from 'axios';
 import ToastificationContent from "@core/components/toastification/ToastificationContent.vue";
 
 export default {
@@ -266,21 +266,37 @@ export default {
         login() {
             var self = this;
             this.$refs.loginForm.validate().then((success) => {
-            
-                if (success) {
-                    useJwt
-                        .login({
-                            employee_no: this.employee_no,
-                            password   : this.password,
-                        })
-                        .then((response) => {
-                            const { userData } = response.data;
-                            useJwt.setToken(response.data.accessToken);
-                            useJwt.setRefreshToken(response.data.refreshToken);
-                            localStorage.setItem("userData",JSON.stringify(userData));
-                            this.$router.push({ name: "all-jo" });
-                        });
+                if(success) {
+                    axios.post('api/auth/login', {
+                        employee_no : this.employee_no, 
+                        password : this.password
+                    }).then( (response) => {
+                        const { userData } = response.data;
+                        useJwt.setToken(response.data.accessToken);
+                        //useJwt.setRefreshToken(response.data.refreshToken);
+                        localStorage.setItem("userData",JSON.stringify(userData));
+                        this.$router.push({ name: "all-jo" });
+                    }).catch((err) => {
+                        self.message = "Invalid username or password.";
+                        console.log(err);
+                    });
+        
                 }
+                
+                // if (success) {
+                //     useJwt
+                //         .login({
+                //             employee_no: this.employee_no,
+                //             password   : this.password,
+                //         })
+                //         .then((response) => {
+                //             const { userData } = response.data;
+                //             useJwt.setToken(response.data.accessToken);
+                //             useJwt.setRefreshToken(response.data.refreshToken);
+                //             localStorage.setItem("userData",JSON.stringify(userData));
+                //             this.$router.push({ name: "all-jo" });
+                //         });
+                // }
             });
         },
     },

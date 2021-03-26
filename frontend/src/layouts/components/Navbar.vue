@@ -30,9 +30,9 @@
         <template #button-content>
           <div class="d-sm-flex d-none user-nav">
             <p class="user-name font-weight-bolder mb-0">
-              John Paul Alcabasa
+              {{ userData.first_name + ' ' + userData.last_name }}
             </p>
-            <span class="user-status">Administrator</span>
+            <span class="user-status">{{ userData.email }}</span>
           </div>
           <b-avatar
             size="40"
@@ -74,6 +74,7 @@ import {
 } from 'bootstrap-vue'
 import DarkToggler from '@core/layouts/components/app-navbar/components/DarkToggler.vue'
 import useJwt from '@/auth/jwt/useJwt';
+import axios from 'axios';
 export default {
   components: {
     BLink,
@@ -98,21 +99,27 @@ export default {
   },
   methods: {
       logout() {
-          // Remove userData from localStorage
-          // ? You just removed token from localStorage. If you like, you can also make API call to backend to blacklist used token
-          localStorage.removeItem(useJwt.jwtConfig.storageTokenKeyName);
-          localStorage.removeItem(
-              useJwt.jwtConfig.storageRefreshTokenKeyName
-          );
+          axios.post('api/auth/logout').then(res => {
+            // Remove userData from localStorage
+            localStorage.removeItem(useJwt.jwtConfig.storageTokenKeyName);
+            // localStorage.removeItem(
+            //     useJwt.jwtConfig.storageRefreshTokenKeyName
+            // );
 
-          // Remove userData from localStorage
-          localStorage.removeItem("userData");
+            // Remove userData from localStorage
+            localStorage.removeItem("userData");
+            this.$router.push({ name: "login" });
+            console.log(res.data);
+          }).catch(err => {
+            console.log("failed logging out, try again.");
+          });
+          
 
           // Reset ability
           // this.$ability.update(initialAbility);
 
           // Redirect to login page
-          this.$router.push({ name: "login" });
+          
       },
   },
 }

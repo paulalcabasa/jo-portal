@@ -13,26 +13,22 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::post('jwt/login', 'AuthController@login');
-Route::post('jwt/refresh-token', 'AuthController@refresh_token');
+// Route::post('jwt/login', 'AuthController@login');
+// Route::post('jwt/refresh-token', 'AuthController@refresh_token');
 
 
+Route::group([
+    'middleware' => 'api',
+    'prefix' => 'auth'
 
-Route::get('departments/get', 'DepartmentController@index');
-// Route::group([
-
-//     'middleware' => 'api',
-//     'prefix' => 'auth'
-
-// ], function ($router) {
-//     Route::post('api-login', 'AuthController@api_login');
-//     Route::post('login', 'AuthController@login');
-//     Route::post('logout', 'AuthController@logout');
-//     Route::post('refresh', 'AuthController@refresh');
-//     Route::post('me', 'AuthController@me');
-
-// });
-
+], function ($router) {
+    Route::post('api-login', 'AuthController@api_login');
+    Route::post('login', 'AuthController@login');
+    Route::post('logout', 'AuthController@logout');
+    Route::post('refresh', 'AuthController@refresh');
+    Route::post('me', 'AuthController@me');
+});
+;
 
 Route::group(['middleware' => 'jwt'], function () { 
     
@@ -51,10 +47,10 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::get('job-order/line/get/{job_order_id}', 'JobOrderLineController@index');
 
     Route::get('job-order/approval/{job_order_id}', 'ApprovalController@index');
-    
-    
+
 });
 
+// public apis
 Route::get('job-order/approve/{approval_id}', 'JOApproveController@store');
 Route::get('job-order/reject-form/{approval_id}', 'JORejectController@show');
 Route::post('job-order/reject', 'JORejectController@store');
