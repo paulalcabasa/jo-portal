@@ -48,6 +48,9 @@ Route::group(['middleware' => 'jwt'], function () {
 
     Route::get('job-order/approval/{job_order_id}', 'ApprovalController@index');
 
+    Route::get('technician/get', 'TechnicianController@index');
+    
+    Route::patch('job-order/schedule/update', 'SetScheduleController@store');
 });
 
 // public apis

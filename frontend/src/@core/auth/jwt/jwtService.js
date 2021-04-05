@@ -117,6 +117,10 @@ export default class JwtService {
 		localStorage.removeItem('userData')
 	}
 
+	getUser() {
+		return JSON.parse(localStorage.getItem('userData'));
+	}
+
 	
 
 	

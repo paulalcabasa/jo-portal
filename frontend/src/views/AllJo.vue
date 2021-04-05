@@ -240,7 +240,7 @@ export default {
 			},
 			fields: [
 				{ key: 'action', label: 'Action' },
-				{ key: 'id', label: 'JO #',},
+				{ key: 'id', label: 'JO #', sortable: true},
 				{ key: 'vin', label: 'VIN', sortable: true },
 				{ key: 'sales_model', label: 'Model', sortable: true },
 				{ key: 'customer_name', label: 'Customer', sortable: true },

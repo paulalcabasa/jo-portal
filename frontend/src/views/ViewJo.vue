@@ -31,7 +31,7 @@
                             </div>
                             <div class="mb-1">
                                 <span class="d-block">Date created</span>
-                                <span class="font-weight-bolder">{{ header.created_at | formatDate }}</span>
+                                <span class="font-weight-bolder">{{ header.created_at | formatDateTime }}</span>
                             </div>
                             <div class="mb-1">
                                 <span class="d-block">Status</span>
@@ -113,15 +113,159 @@
                                 </template> 
                             </b-table>
                         </b-tab>
+                        <b-tab title="Schedule">
+                            <b-row>
+                                <b-col>
+                                    <b-row>
+                                        <b-col>Technician</b-col>
+                                        <b-col>
+                                            <b-link v-b-toggle.sidebar-right>{{ header.technician_name != '' ? header.technician_name : 'Set technician'}}</b-link>
+                                        </b-col>
+                                    </b-row>
+                                    <b-row>
+                                        <b-col>Schedule start date</b-col>
+                                        <b-col>
+                                            <b-link v-b-toggle.sidebar-right>
+                                                <span v-if="header.start_date != ''">{{ header.start_date | formatDateTime }}</span>
+                                                <span v-if="header.start_date == ''">Set start date</span>
+                                            </b-link>
+                                        </b-col>
+                                    </b-row>
+                                    <b-row>
+                                        <b-col>Completion date</b-col>
+                                        <b-col>
+                                            <b-link v-b-toggle.completion-details>Set as completed</b-link>
+                                        </b-col>
+                                    </b-row>
+                                </b-col>
+                                
+                                <b-col></b-col>
+                            </b-row>
+                        </b-tab>
                     </b-tabs>
-                    
 	            </b-card>
+           
             </b-col>
 
         </b-row>
-	
+
+        <!-- Sidebar Overlay -->
+        <b-sidebar
+            id="sidebar-right"
+            bg-variant="white"
+            right
+            backdrop
+            shadow
+            no-header
+        >
+            <div class="d-flex justify-content-between align-items-center content-sidebar-header px-2 py-1">
+                <h5 class="mb-0">
+                    Schedule
+                </h5>
+                <div>
+                    <feather-icon
+                        icon="SaveIcon"
+                        class="cursor-pointer"
+                        @click="saveSchedule"
+                    />
+                </div>
+            </div>
+            <!-- Body -->
+         
+                <!-- Form -->
+                <b-form
+                    class="p-2"  
+                >
+                    <b-form-group
+                        label="Technician"
+                        label-for="Technician"
+                    >
+                        <v-select
+                            size="sm"
+                            v-model="form.assigned_technician_id"
+                            :options="technicians"
+                            label="first_name"
+                        >
+                            <template v-slot:option="option">
+                                {{ option.first_name + ' ' + option.last_name }}
+                            </template>
+                        </v-select>
+                    </b-form-group>
+                    <!-- Start Date -->
+                    <b-form-group
+                        label="Start Date"
+                        label-for="start-date"
+                    >
+                        <flat-pickr
+                            v-model="form.start_date"
+                            class="form-control"
+                            :config="{ enableTime: true, dateFormat: 'Y-m-d H:i'}"
+                        />
+                        
+                    </b-form-group>
+
+                
+                    <!-- <div class="d-flex mt-2">
+                        <b-button
+                            v-ripple.400="'rgba(255, 255, 255, 0.15)'"
+                            variant="primary"
+                            class="mr-2"
+                            type="submit"
+                        >
+                            Save
+                        </b-button>
+                    </div> -->
+                </b-form>
+        </b-sidebar>
+
+        <b-sidebar
+            id="completion-details"
+            bg-variant="white"
+            right
+            backdrop
+            shadow
+            no-header
+            width="600px"
+        >
+            <div class="d-flex justify-content-between align-items-center content-sidebar-header px-2 py-1">
+                <h5 class="mb-0">
+                    Complete Job Order
+                </h5>
+                <div>
+                    <feather-icon
+                        icon="SaveIcon"
+                        class="cursor-pointer"
+                    />
+                </div>
+            </div>
+
+             <b-form
+                    class="p-2"  
+                >
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Job</th>
+                                <th>Job Done</th>
+                                <th>OP Code</th>
+                                <th>Labor charge</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                            
+                            </tr>
+                        </tbody>
+                    </table>
+                </b-form>
+
+        </b-sidebar>
     </div>
 </template>
+<style lang="scss">
+  @import '@core/scss/vue/libs/vue-select.scss';
+  @import '@core/scss/vue/libs/vue-flatpicker.scss';
+</style>
 <script>
 
 import {
@@ -134,16 +278,29 @@ import {
     BTabs, 
     BTab,
     BTable,
-    BFormCheckbox
+    BFormCheckbox,
+    BLink,
+    BSidebar,
+    VBToggle,
+    BFormInvalidFeedback,
+    BForm,
+    BFormInput,
+    BFormGroup,
+    BFormDatepicker 
 } from 'bootstrap-vue'
-
+import flatPickr from 'vue-flatpickr-component'
 import axios from 'axios';
 import Ripple from 'vue-ripple-directive'
 import statusColors from '@/@core/app-config/status.config.json';
 import moment from 'moment';
+import { ValidationProvider, ValidationObserver } from 'vee-validate'
+import { required, email, url } from '@validations'
+import formValidation from '@core/comp-functions/forms/form-validation'
+import vSelect from 'vue-select'
 export default {
 	components: {
 		BCard, 
+        vSelect,
         BCardText, 
         BBadge, 
         BRow, 
@@ -153,10 +310,24 @@ export default {
         BTab,
         BTable,
         BFormCheckbox,
-        
+        BLink,
+        BSidebar,
+        ValidationProvider,
+        BFormInvalidFeedback,
+        ValidationObserver,
+        BForm,
+        BFormInput,
+        BFormGroup,
+        flatPickr,
+        BFormDatepicker 
 	},
+    directives: {
+        'b-toggle': VBToggle,
+        Ripple
+    },
 	data() {
 		return {
+            dateNtim: null,
             header : {},
             lines : [],
             parts_fields : [
@@ -216,7 +387,16 @@ export default {
                     key : 'remarks',
                     label : 'Remarks'
                 }
-            ]
+            ],
+            technicians : [],
+            isEventHandlerSidebarActive : false,
+            form : {
+                job_order_id : '',
+                start_date : '',
+                completion_date : '',
+                assigned_technician_id : ''
+            }
+            
     	}
 	},
 	mounted() {
@@ -227,26 +407,43 @@ export default {
             let headerApi = 'api/job-order/header/get/' + this.$route.params.jobOrderId;
             let lineApi = 'api/job-order/line/get/' + this.$route.params.jobOrderId;
             let approvalApi = 'api/job-order/approval/' + this.$route.params.jobOrderId;
+            this.form.job_order_id  = this.$route.params.jobOrderId;
+            let technicianApi = 'api/technician/get';
             const headerReq = axios.get(headerApi);
             const lineReq = axios.get(lineApi);
             const approvalReq = axios.get(approvalApi);
+            const technicianReq = axios.get(technicianApi);
             var self = this;
-            axios.all([headerReq, lineReq, approvalReq]).then(axios.spread((...responses) => {
+            axios.all([headerReq, lineReq, approvalReq, technicianReq]).then(axios.spread((...responses) => {
                 self.header = responses[0].data;
                 self.lines = responses[1].data;
                 self.approval = responses[2].data;
+                self.technicians = responses[3].data;
             })).catch(errors => {
 
             }).finally( () => {
 
             });
-        
+        },
+        saveSchedule(){
+            var self = this;
+            axios.patch('api/job-order/schedule/update', self.form).then( ({res}) => {
+                self.header.technician_name = self.form.assigned_technician_id.first_name + ' ' + self.form.assigned_technician_id.last_name; 
+                self.header.start_date = this.form.start_date;
+            }).catch(({err}) => {
+                console.log(err);
+            });
         }
 	},
     filters : {
         formatDate: function(value) {
             if (value) {
                 return moment(String(value)).format('MM/DD/YYYY')
+            }
+        },
+        formatDateTime: function(value) {
+            if (value) {
+                return moment(String(value)).format('MM/DD/YYYY hh:mm A')
             }
         },
     },

@@ -51,7 +51,11 @@ class JOHeader extends Model
                         vehicle.serial_number cs_no,
                         jh.mileage,
                         jh.contact_number,
-                        jh.customer_type_id
+                        jh.customer_type_id,
+                        jh.technician_id,
+                        jh.start_date,
+                        jh.completion_date,
+                        tech.first_name || ' ' || tech.last_name technician_name
                 FROM ipc.ipc_jo_headers jh
                     LEFT JOIN ipc.ipc_jo_vehicles_v vehicle
                         ON jh.vin = vehicle.vin
@@ -59,6 +63,8 @@ class JOHeader extends Model
                         ON st.id = jh.status
                     LEFT JOIN ipc.ipc_jo_customer_types cust_type
                         ON cust_type.id = jh.customer_type_id  
+                    LEFT JOIN ipc.ipc_jo_technicians tech
+                        ON tech.id = jh.technician_id
                 WHERE jh.id = :job_order_id";
         $query = DB::select($sql, ['job_order_id' => $id]);
 

@@ -270,10 +270,10 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th width="200">Job Request</th>
-                                    <th>Job Done</th>
-                                    <th>OP Code</th>
-                                    <th>Labor Charge</th>
+                                    <th>Job Request</th>
+                                    <th v-if="user.user_type != 'Administrator' ? false : true" >Job Done</th>
+                                    <th v-if="user.user_type != 'Administrator' ? false : true" >OP Code</th>
+                                    <th v-if="user.user_type != 'Administrator' ? false : true" >Labor Charge</th>
                                     <th>Parts</th>
                                     <th>Action</th>
                                 </tr>
@@ -298,9 +298,9 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td><b-form-input v-model="row.job_done" /></td>
-                                    <td><b-form-input v-model="row.op_code" /></td>
-                                    <td><b-form-input v-model="row.labor_charge" /></td>
+                                    <td v-if="user.user_type != 'Administrator' ? false : true" ><b-form-input v-model="row.job_done"/></td>
+                                    <td v-if="user.user_type != 'Administrator' ? false : true" ><b-form-input v-model="row.op_code" /></td>
+                                    <td v-if="user.user_type != 'Administrator' ? false : true" ><b-form-input v-model="row.labor_charge" /></td>
                                     <td>
                                         <b-button 
                                             variant="danger" 
@@ -396,6 +396,7 @@ import {
 import { required, email } from '@validations'
 import { GET_VEHICLE } from '@/store/job-order/index.js';
 import axios from 'axios';
+import useJwt from '@/auth/jwt/useJwt';
 export default {
     components: {
         ValidationProvider,
@@ -454,12 +455,12 @@ export default {
             jobTypes : [],
             sections : [],
             departments : [],
-            action : 'create'
+            action : 'create',
+            user : useJwt.getUser()
         }
     },
     mounted() {
         this.loadOptions();
-
         if(this.$route.params.jobOrderId){
             this.action = "update";
             this.form.job_order_id = this.$route.params.jobOrderId;
