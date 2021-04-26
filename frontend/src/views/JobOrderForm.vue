@@ -214,23 +214,14 @@
                                     label="Contact Number"
                                     label-for="contact_number"
                                 >
-                                    <validation-provider
-                                        #default="{ errors }"
-                                        rules="required"
-                                        name="Contact Number"
-                                    >
-                                        <b-form-input
-                                            v-model="form.contact_number"
-                                            type="text"
-                                            :state="errors.length > 0 ? false:null"
-                                            placeholder="Contact Number"
-                                        />
-                                        <small class="text-danger">{{ errors[0] }}</small>
-                                    </validation-provider>
+                                    <b-form-input
+                                        v-model="form.contact_number"
+                                        type="text"
+                                        placeholder="Contact Number"
+                                    /> 
                                 </b-form-group>
 
-
-                                 <b-form-group
+                                <b-form-group
                                     label="Date sold"
                                     label-for="date_sold"
                                 >
